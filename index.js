@@ -37,16 +37,6 @@ const User = mongoose.model("User", userSchema);
 
 app.post("/jwt", async (req, res) => {
   const { name, email } = req.body;
-  const user = await User.findOne({ email }).exec();
-
-  if (!user) {
-    try {
-      const user = new User({ name, email });
-      await user.save();
-    } catch (err) {
-      console.log(err);
-    }
-  }
 
   const token = jwt.sign({ name, email }, process.env.JWT_SECRET, {
     expiresIn: "1h",
@@ -67,6 +57,20 @@ app.post("/logout", async (req, res) => {
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
   });
   res.send({ acknowledgement: true, status: "cookie cleared" });
+});
+
+app.post("/registration", async (req, res) => {
+  const {name, email } = req.body;
+  const user = await User.findOne({ email }).exec();
+  if (!user) {
+    try {
+      const user = new User({ name, email });
+      await user.save();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  res.send({ acknowledgement: true, message: "Registration successful." });
 });
 
 app.get("/", (req, res) => {
