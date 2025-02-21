@@ -56,6 +56,15 @@ app.post("/jwt", async (req, res) => {
   res.send({ acknowledgement: true, status: "cookie created" });
 });
 
+app.post("/logout", async (req, res) => {
+  res.clearCookie("TASK_MANAGEMENT_APPLICATION", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  });
+  res.send({ acknowledgement: true, status: "cookie cleared" });
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
