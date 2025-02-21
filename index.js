@@ -5,6 +5,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const userSchema = require("./schemas/userSchema");
+const taskSchema = require("./schemas/taskSchema");
 
 const app = express();
 
@@ -32,8 +33,25 @@ mongoose
   .then(() => console.log("Connected to db."))
   .catch(() => console.log("Something went wrong."));
 
+const checkToken = (req, res, next) => {
+  const token = req?.cookies?.TASK_MANAGEMENT_APPLICATION;
+
+  if (!token) {
+    return res.status(403).send({ message: "Unauthorized access" });
+  } else {
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(403).send({ message: "Unauthorized access" });
+      }
+      req.decodedEmail = decoded.email;
+      next();
+    });
+  }
+};
+
 // const User = new mongoose.model("User", userSchema);
 const User = mongoose.model("User", userSchema);
+const Task = mongoose.model("Task", taskSchema);
 
 app.post("/jwt", async (req, res) => {
   const { name, email } = req.body;
@@ -60,7 +78,7 @@ app.post("/logout", async (req, res) => {
 });
 
 app.post("/registration", async (req, res) => {
-  const {name, email } = req.body;
+  const { name, email } = req.body;
   const user = await User.findOne({ email }).exec();
   if (!user) {
     try {
@@ -71,6 +89,43 @@ app.post("/registration", async (req, res) => {
     }
   }
   res.send({ acknowledgement: true, message: "Registration successful." });
+});
+
+app.post("/add-task", checkToken, async (req, res) => {
+  const { title, description, category } = req.body;
+  const author = req.decodedEmail;
+  try {
+    const task = new Task({ author, title, description, category });
+    const result = await task.save();
+
+    if (result) {
+      res.send({ acknowledgement: true, message: "Task added successfully." });
+    } else {
+      res.send({ acknowledgement: false, message: "Something went wrong." });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.post("/my-tasks", checkToken, async (req, res) => {
+  const email = req.decodedEmail;
+  try {
+    const result = await Task.find({ author: email });
+    res.send(result);
+  } catch (err) {
+    console.log(err);
+  }
+});
+
+app.post("/get-my-task", checkToken, async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await Task.findById({ _id: id });
+    res.send(result);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 app.get("/", (req, res) => {
