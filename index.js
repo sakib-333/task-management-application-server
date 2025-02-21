@@ -11,7 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://task-management-applicat-d14b5.web.app",
+      "https://task-management-applicat-d14b5.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
