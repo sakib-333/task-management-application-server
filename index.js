@@ -128,6 +128,26 @@ app.post("/get-my-task", checkToken, async (req, res) => {
   }
 });
 
+app.post("/delete-task", checkToken, async (req, res) => {
+  const { id } = req.body;
+  try {
+    const result = await Task.findByIdAndDelete({ _id: id });
+    if (result) {
+      res.send({
+        acknowledgement: true,
+        message: "Task deleted successfully.",
+      });
+    } else {
+      res.send({
+        acknowledgement: false,
+        message: "Something went wrong.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
