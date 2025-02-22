@@ -148,6 +148,26 @@ app.post("/delete-task", checkToken, async (req, res) => {
   }
 });
 
+app.post("/edit-task", checkToken, async (req, res) => {
+  const { id, data } = req.body;
+  try {
+    const result = await Task.findByIdAndUpdate(id, { ...data });
+    if (result) {
+      res.send({
+        acknowledgement: true,
+        message: "Task updated successfully.",
+      });
+    } else {
+      res.send({
+        acknowledgement: false,
+        message: "Task updation failed.",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
